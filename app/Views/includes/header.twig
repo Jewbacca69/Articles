@@ -61,7 +61,7 @@
 {% if flush.success is defined %}
 <script>
     Swal.fire({
-        title: '{{ flush.success ? "Success!" : "Error!" }}',
+        title: '{{ flush.success ? "Success! 🎉" : "Error! 🤔" }}',
         text: '{{ flush.message }}',
         icon: '{{ flush.success ? "success" : "error" }}',
         confirmButtonText: 'Okay',
