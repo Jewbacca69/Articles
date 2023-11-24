@@ -1,0 +1,46 @@
+{% include ('includes/header.twig') %}
+
+{% include ('includes/navbar.twig') %}
+
+<div class="max-w-4xl mx-auto mt-8 p-8">
+    <div class="bg-gray-800 rounded-lg overflow-hidden shadow-md">
+        <img src="{{ article.picture|striptags }}" alt="{{ article.title|striptags }}" class="w-full h-64 object-cover object-center rounded-t-lg">
+        <div class="p-6">
+            <h1 class="text-4xl font-bold text-blue-400 mb-4">{{ article.title|striptags }}</h1>
+            <blockquote class="text-gray-300 border-l-4 border-blue-400 pl-4 mb-4">{{ article.description|striptags }}</blockquote>
+            <small class="text-gray-500 block">Created at : {{ article.createdAt|striptags }}</small>
+            {% if article.updatedAt is not null %}
+                <small class="text-gray-500 block">Last updated : {{ article.updatedAt }}</small>
+            {% endif %}
+            <div class="flex justify-end mt-4">
+                <a href="/article/edit/{{ article.id }}" class="text-blue-400 hover:underline mr-4">Edit</a>
+                <form method="POST" action="/article/delete/{{ article.id }}" id="deleteForm-{{ article.id }}">
+                    <button type="submit" class="text-red-400 hover:text-red-200">Delete</button>
+                </form>
+                <script>
+                    document.getElementById('deleteForm-{{ article.id }}').addEventListener('submit', function(event) {
+                        event.preventDefault();
+                        Swal.fire({
+                            title: 'Confirmation required',
+                            text: 'Are you sure you want to delete this article?',
+                            icon: 'warning',
+                            showCancelButton: true,
+                            confirmButtonColor: '#3085d6',
+                            cancelButtonColor: '#d33',
+                            confirmButtonText: 'Yes, delete it!',
+                            customClass: {
+                                popup: 'dark:bg-gray-800',
+                                title: 'dark:text-white',
+                                content: 'dark:text-white'
+                            }
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                document.getElementById('deleteForm-{{ article.id }}').submit();
+                            }
+                        });
+                    });
+                </script>
+            </div>
+        </div>
+    </div>
+</div>

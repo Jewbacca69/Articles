@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Articles</title>
+    <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        body {
+            font-family: 'Raleway', sans-serif;
+            background-color: #1a202c;
+            color: #e2e8f0;
+        }
+
+        .dark\:bg-white { background-color: #2d3748 !important; }
+        .dark\:text-white { color: #e2e8f0 !important; }
+
+        nav {
+            background-color: #2a4365;
+        }
+
+        .swal2-popup {
+            background-color: #2d3748;
+            color: #e2e8f0;
+        }
+        .swal2-title, .swal2-content {
+            color: #e2e8f0;
+        }
+
+        .article-block {
+            transition: transform 0.3s ease-in-out;
+        }
+        .article-block:hover {
+            transform: scale(1.05);
+        }
+        ::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #111827;
+            border-radius: 8px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #1f2937;
+            border-radius: 8px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #283445;
+        }
+
+        textarea::-webkit-resizer {
+            background-color: #282828;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 dark:bg-gray-900 dark:text-gray-200">
+{% if flush.success is defined %}
+<script>
+    Swal.fire({
+        title: '{{ flush.success ? "Success!" : "Error!" }}',
+        text: '{{ flush.message }}',
+        icon: '{{ flush.success ? "success" : "error" }}',
+        confirmButtonText: 'Okay',
+        timer: 3000,
+        timerProgressBar: true,
+        showConfirmButton: false
+    });
+</script>
+{% endif %}
