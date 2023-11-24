@@ -128,16 +128,20 @@ class ArticleController extends BaseController
     {
         if (empty($_POST["title"])) {
             $this->addNotification(false, "Title is required!");
+            
             return new RedirectResponse("/article/edit/" . $id);
         }
 
         if (empty($_POST["description"])) {
             $this->addNotification(false, "Description is required!");
+            
             return new RedirectResponse("/article/edit/" . $id);
         }
 
         $image = !empty($_POST["image"]) ? $_POST["image"] : $this->getRandomImage();
+
         $createdAt = Carbon::now()->format('Y-m-d H:i:s');
+
         $this->database->createQueryBuilder()
             ->update('articles')
             ->set('title', '?')
