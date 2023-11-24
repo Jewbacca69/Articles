@@ -68,13 +68,14 @@ class ArticleController extends BaseController
     {
 
         if (empty($_POST["title"])) {
-            $_SESSION["flush"] = ["success" => false, "message" => "Title is required"];
-            return new RedirectResponse("/article/create");
+            $this->addNotification(false, "Title is required!");
 
+            return new RedirectResponse("/article/create");
         }
 
         if (empty($_POST["description"])) {
-            $_SESSION["flush"] = ["success" => false, "message" => "Description is required"];
+            $this->addNotification(false, "Description is required!");
+
             return new RedirectResponse("/article/create");
         }
 
@@ -96,7 +97,7 @@ class ArticleController extends BaseController
             ->setParameter(3, Carbon::now())
             ->executeQuery();
 
-        $_SESSION["flush"] = ["success" => true, "message" => "Article created successfully!"];
+        $this->addNotification(true, "Article created successfully!");
 
         return new RedirectResponse("/");
     }
@@ -126,11 +127,11 @@ class ArticleController extends BaseController
     public function update(string $id): RedirectResponse
     {
         if (empty($_POST["title"])) {
-            $_SESSION["flush"] = ["success" => false, "message" => "Title is required"];
+            $this->addNotification(false, "Title is required!");
         }
 
         if (empty($_POST["description"])) {
-            $_SESSION["flush"] = ["success" => false, "message" => "Description is required"];
+            $this->addNotification(false, "Description is required!");
         }
 
         $image = !empty($_POST["image"]) ? $_POST["image"] : $this->getRandomImage();
@@ -151,7 +152,7 @@ class ArticleController extends BaseController
             ])
             ->executeQuery();
 
-        $_SESSION["flush"] = ["success" => true, "message" => "Article successfully updated!"];
+        $this->addNotification(true, "Article successfully updated!");
 
         return new RedirectResponse("/article/" . $id);
     }
@@ -164,7 +165,7 @@ class ArticleController extends BaseController
             ->setParameter(0, $id)
             ->executeQuery();
 
-        $_SESSION["flush"] = ["success" => true, "message" => "Article successfully deleted!"];
+        $this->addNotification(true, "Article successfully deleted!");
 
         return new RedirectResponse("/");
     }
@@ -177,5 +178,10 @@ class ArticleController extends BaseController
         $content = $response->toArray();
 
         return $content[array_rand($content)]['download_url'];
+    }
+
+    private function addNotification(bool $success, string $message): void
+    {
+        $_SESSION["flush"] = ["success" => $success, "message" => $message];
     }
 }
