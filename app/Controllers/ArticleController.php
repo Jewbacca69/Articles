@@ -4,57 +4,41 @@ declare(strict_types=1);
 
 namespace App\Controllers;
 
+use App\Repositories\ArticleRepository;
+use App\Repositories\MysqlArticleRepository;
+use App\Services\Article\DeleteArticleService;
+use App\Services\Article\IndexArticleService;
+use App\Services\Article\ShowArticleService;
+use App\Services\Article\StoreArticleService;
+use App\Services\Article\UpdateArticleService;
 use Symfony\Component\HttpClient\HttpClient;
-use App\Collections\ArticleCollection;
 use App\Response\RedirectResponse;
 use App\Response\ViewResponse;
 use App\Response\Response;
-use App\Models\Article;
-use Carbon\Carbon;
 
-class ArticleController extends BaseController
+class ArticleController
 {
-    public function index(): Response
+    private ArticleRepository $articleRepository;
+
+    public function __construct()
     {
-        $articles = $this->database->createQueryBuilder()
-            ->select("*")
-            ->from("articles")
-            ->fetchAllAssociative();
+        $this->articleRepository = new MysqlArticleRepository();
+    }
 
-        $articleCollection = new ArticleCollection();
+    public function index(): ViewResponse
+    {
+        $service = new IndexArticleService();
 
-        foreach ($articles as $article) {
-            $articleCollection->addArticle(new Article(
-                (int)$article["id"],
-                $article["title"],
-                $article["description"],
-                $article["picture"],
-                $article["created_at"],
-                $article["updated_at"]
-            ));
-        }
+        $articles = $service->execute();
 
-        return new ViewResponse("index", ["articles" => $articleCollection->getAllArticles()]);
+        return new ViewResponse("index", ["articles" => $articles]);
     }
 
     public function show(string $id): Response
     {
-        $article = $this->database->createQueryBuilder()
-            ->select("*")
-            ->from("articles")
-            ->where("id = ?")
-            ->setParameter(0, $id)
-            ->fetchAssociative();
+        $service = new ShowArticleService();
 
-        $article = new Article
-        (
-            (int)$article["id"],
-            $article["title"],
-            $article["description"],
-            $article["picture"],
-            $article["created_at"],
-            $article["updated_at"]
-        );
+        $article = $service->execute($id);
 
         return new ViewResponse("show", ["article" => $article]);
     }
@@ -81,21 +65,9 @@ class ArticleController extends BaseController
 
         $image = !empty($_POST["image"]) ? $_POST["image"] : $this->getRandomImage();
 
-        $this->database->createQueryBuilder()
-            ->insert('articles')
-            ->values(
-                [
-                    'title' => '?',
-                    'description' => '?',
-                    'picture' => '?',
-                    'created_at' => '?',
-                ]
-            )
-            ->setParameter(0, $_POST["title"])
-            ->setParameter(1, $_POST["description"])
-            ->setParameter(2, $image)
-            ->setParameter(3, Carbon::now())
-            ->executeQuery();
+        $service = new StoreArticleService();
+
+        $service->execute($_POST['title'], $_POST['description'], $image);
 
         $this->addNotification(true, "Article created successfully!");
 
@@ -104,72 +76,51 @@ class ArticleController extends BaseController
 
     public function edit(string $id): Response
     {
-        $article = $this->database->createQueryBuilder()
-            ->select("*")
-            ->from("articles")
-            ->where("id = ?")
-            ->setParameter(0, $id)
-            ->fetchAssociative();
+        try {
+            $service = new ShowArticleService();
+            $article = $service->execute($id);
 
-        $article = new Article
-        (
-            (int)$article["id"],
-            $article["title"],
-            $article["description"],
-            $article["picture"],
-            $article["created_at"],
-            $article["updated_at"]
-        );
+            $this->addNotification(true, "Article successfully updated.");
 
-        return new ViewResponse("edit", ["article" => $article]);
+            return new ViewResponse('edit', ['article' => $article]);
+        } catch (\Exception $e) {
+            $this->addNotification(false, "Failed to add article.");
+        }
+
+        return new RedirectResponse('/');
     }
 
     public function update(string $id): RedirectResponse
     {
+        $article = $this->articleRepository->getById($id);
+
+
         if (empty($_POST["title"])) {
             $this->addNotification(false, "Title is required!");
-            
+
             return new RedirectResponse("/article/edit/" . $id);
         }
 
         if (empty($_POST["description"])) {
             $this->addNotification(false, "Description is required!");
-            
+
             return new RedirectResponse("/article/edit/" . $id);
         }
 
         $image = !empty($_POST["image"]) ? $_POST["image"] : $this->getRandomImage();
 
-        $createdAt = Carbon::now()->format('Y-m-d H:i:s');
-
-        $this->database->createQueryBuilder()
-            ->update('articles')
-            ->set('title', '?')
-            ->set('description', '?')
-            ->set('picture', '?')
-            ->set('updated_at', '?')
-            ->where('id = ?')
-            ->setParameters([
-                $_POST["title"],
-                $_POST["description"],
-                $image,
-                $createdAt,
-                $id,
-            ])
-            ->executeQuery();
+        $service = new UpdateArticleService();
+        $service->execute($id, $_POST["title"], $_POST["description"], $image);
 
         $this->addNotification(true, "Article successfully updated!");
 
-        return new RedirectResponse("/article/" . $id);
+        return new RedirectResponse('/article/' . $id);
     }
 
     public function delete(string $id): RedirectResponse
     {
-        $this->database->createQueryBuilder()
-            ->delete("articles")
-            ->where("id = ?")
-            ->setParameter(0, $id)
-            ->executeQuery();
+        $service = new DeleteArticleService();
+        $service->execute($id);
 
         $this->addNotification(true, "Article successfully deleted!");
 
